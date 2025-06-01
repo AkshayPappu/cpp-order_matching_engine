@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
+#include <mutex>
 
 class Trade {
     private:
@@ -29,16 +30,21 @@ class Trade {
 class TradeBook {
     private:
         std::vector<Trade> trades_;
+        std::mutex trades_mutex_;
     public:
         // constructor
         TradeBook() = default;
 
         // add trade
         void add_trade(Trade trade) {
+            std::lock_guard<std::mutex> lock(trades_mutex_);
             trades_.push_back(trade);
             std::cout << "Trade Made: " << "Buyer ID: " << trade.buyer_id() << " Seller ID: " << trade.seller_id() << " Price: " << trade.price() << " Quantity: " << trade.quantity() << std::endl;
         };
 
         // get trades
-        std::vector<Trade> getTrades() const { return trades_; };
+        std::vector<Trade> getTrades() { 
+            std::lock_guard<std::mutex> lock(trades_mutex_);
+            return trades_; 
+        };
 };

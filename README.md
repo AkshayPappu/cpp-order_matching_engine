@@ -11,6 +11,7 @@ This system implements a complete order matching environment with two main compo
    - Implements a limit order book system
    - Connects to the order feed server via TCP socket
    - Matches orders based on price-time priority
+   - Utilizes multithreading for high-performance order processing
 
 2. **Order Generation Server** (Python)
    - Simulates a market data feed
@@ -42,13 +43,15 @@ Requirements:
 Build the engine:
 ```bash
 cd order-matching-engine
-g++ -std=c++20 -O2 main.cpp OrderReader.cpp -o engine
+g++ -std=c++20 -O2 -pthread main.cpp OrderReader.cpp -o engine
 ```
 
 Run the engine:
 ```bash
 ./engine
 ```
+
+Note: The engine uses multiple threads for order processing. The number of worker threads is currently set to 4 by default.
 
 ### Order Generation Server (Python)
 
@@ -89,6 +92,24 @@ python order_server.py
    - Handles TCP socket connection
    - Reads and parses incoming orders
    - Provides interface for main processing loop
+
+4. **OrderQueue Class**
+   - Thread-safe queue implementation
+   - Manages order distribution to worker threads
+   - Implements producer-consumer pattern
+   - Handles graceful shutdown of worker threads
+
+5. **Multithreaded Architecture**
+   - Producer-Consumer pattern implementation
+   - Main thread acts as producer:
+     - Reads orders from socket
+     - Adds orders to thread-safe queue
+   - Multiple worker threads act as consumers:
+     - Process orders from queue
+     - Execute order matching logic
+   - Synchronized logging with mutex protection
+   - Graceful shutdown handling
+   - Default configuration: 4 worker threads
 
 ### Order Generation Server (Python)
 
@@ -155,6 +176,10 @@ Potential enhancements for both components:
 - Performance metrics
 - REST API interface
 - Unit and integration tests
+- Dynamic thread pool sizing
+- Thread affinity configuration
+- Performance monitoring per thread
+- Lock-free queue implementation
 
 ### Order Generation Server
 - More sophisticated order generation algorithms
@@ -170,4 +195,4 @@ Potential enhancements for both components:
 
 ## Author
 
-[Your name] 
+Akshay Pappu 

@@ -1,6 +1,7 @@
 #pragma once
 #include <queue>
 #include <cstdint>
+#include <mutex>
 
 enum class OrderType { BUY, SELL };
 
@@ -13,7 +14,8 @@ class Order {
         uint64_t timestamp_;
 
     public:
-        // constructor
+        // constructors
+        Order() : type_(OrderType::BUY), price_(0), quantity_(0), id_(0), timestamp_(0) {}
         Order(OrderType type, double price, double quantity, uint64_t id, uint64_t timestamp)
             : type_(type), price_(price), quantity_(quantity), id_(id), timestamp_(timestamp) {}
         
@@ -51,6 +53,9 @@ class OrderBook {
     private:
         std::priority_queue<Order, std::vector<Order>, BuyOrderComparator> buy_orders_;
         std::priority_queue<Order, std::vector<Order>, SellOrderComparator> sell_orders_;
+        std::mutex buy_mutex_;
+        std::mutex sell_mutex_;
+
     public:
         // constructor
         OrderBook() = default;
@@ -58,14 +63,17 @@ class OrderBook {
         // add order
         void add_order(Order order) {
             if (order.type() == OrderType::BUY) {
+                std::lock_guard<std::mutex> lock(buy_mutex_);
                 buy_orders_.push(order);
             } else {
+                std::lock_guard<std::mutex> lock(sell_mutex_);
                 sell_orders_.push(order);
             }
         };
 
         // pop top buy order
         Order pop_top_buy_order() {
+            std::lock_guard<std::mutex> lock(buy_mutex_);
             if (!buy_orders_.empty()) {
                 Order order = buy_orders_.top();
                 buy_orders_.pop();
@@ -77,6 +85,7 @@ class OrderBook {
 
         // pop top sell order
         Order pop_top_sell_order() {
+            std::lock_guard<std::mutex> lock(sell_mutex_);
             if (!sell_orders_.empty()) {
                 Order order = sell_orders_.top();
                 sell_orders_.pop();
@@ -87,8 +96,14 @@ class OrderBook {
         };
 
         // check if has sell order
-        bool has_sell_order() const { return !sell_orders_.empty(); }
+        bool has_sell_order() { 
+            std::lock_guard<std::mutex> lock(sell_mutex_);
+            return !sell_orders_.empty(); 
+        }
 
         // check if has buy order
-        bool has_buy_order() const { return !buy_orders_.empty(); }
+        bool has_buy_order() { 
+            std::lock_guard<std::mutex> lock(buy_mutex_);
+            return !buy_orders_.empty(); 
+        }
 };
