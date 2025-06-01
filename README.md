@@ -23,10 +23,14 @@ This system implements a complete order matching environment with two main compo
 ```
 .
 ├── order-matching-engine/     # C++ Order Matching Engine
-│   ├── main.cpp              # Main program entry point
-│   ├── OrderBook.hpp         # Order book implementation
-│   ├── OrderReader.hpp       # Socket connection interface
-│   └── OrderReader.cpp       # Order reading implementation
+│   ├── IdGenerator.hpp        # Order ID generation utilities
+│   ├── main.cpp               # Main program entry point
+│   ├── OrderBook.hpp          # Order book implementation
+│   ├── OrderMatcher.hpp       # Order matching logic
+│   ├── OrderQueue.hpp         # Thread-safe order queue
+│   ├── OrderReader.cpp        # Order reading implementation
+│   ├── OrderReader.hpp        # Socket connection interface
+│   ├── TradeBook.hpp          # Trade book management
 │
 └── server/                   # Python Order Generation Server
     └── order_server.py      # Main server implementation
